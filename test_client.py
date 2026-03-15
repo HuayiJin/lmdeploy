@@ -20,6 +20,12 @@ else:
 # 并发控制
 MAX_CONCURRENT = int(sys.argv[1])
 
+# 对齐 curl 中使用的模型路径
+MODEL_NAME = (
+    "/mnt/tidal-alsh01/dataset/redone/heshien/red_mg_dllm/"
+    "Red-dLLM_30BA3B_pt_s27000_sft_s5100_sft_v2_compress_text_20260306002212/hf_800"
+)
+
 
 def load_all_planning_samples(file_path):
     """
@@ -37,17 +43,13 @@ async def query_sglang_async(session, system, user, idx, total, port=20000):
     url = f"http://localhost:{port}/v1/chat/completions"
     content = None
     
+    messages = [{"role": "user", "content": user}]
+    if system:
+        messages.insert(0, {"role": "system", "content": system})
+
     payload = {
-        "messages": [
-            {
-                "role": "system",
-                "content": system,
-            },
-            {
-                "role": "user",
-                "content": user,
-            }
-        ],
+        "model": MODEL_NAME,
+        "messages": messages,
         "temperature": 0.0,
         "max_tokens": 256,
         "stream": False
@@ -131,7 +133,7 @@ async def main():
         print("Error: IN_FILE not set or file not found")
         sys.exit(1)
     
-    samples = [samples[14]] * 100
+    # samples = [samples[14]] * 100
     # xxx = {}
     # xxx['planning_system'] = "说中文"
     # xxx['planning_user'] = "iphone 18 值得购买吗"

@@ -326,12 +326,11 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--model-path',
-        default='/mnt/shared-storage-user/llmrazor-share/qa-llm-cicd/'
-                'cicd-autotest/eval_resource/model/JetLM/SDAR-30B-A3B-Sci',
+        default='/mnt/tidal-alsh01/dataset/redone/heshien/red_mg_dllm/Red-dLLM_30BA3B_pt_s27000_sft_s5100_sft_v2_compress_text_20260306002212/hf_800',
         help='模型本地路径',
     )
     parser.add_argument(
-        '--log-dir', default='/tmp/lmdeploy_sdar_test', help='日志目录'
+        '--log-dir', default='/data/temp/lmdeploy', help='日志目录'
     )
     parser.add_argument(
         '--only-start', action='store_true', help='仅启动服务，不运行测试'
@@ -351,7 +350,7 @@ if __name__ == '__main__':
     print(f'服务已就绪，PID={pid}，日志：{log_file}')
     print(f'API 地址：{BASE_URL}/v1')
 
-    if args.only_start:
+    if 1:
         print('--only-start 模式，服务保持运行中。按 Ctrl+C 停止。')
         try:
             while True:
