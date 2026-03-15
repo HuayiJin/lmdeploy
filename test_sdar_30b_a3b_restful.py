@@ -27,9 +27,9 @@ from openai import OpenAI
 from lmdeploy.serve.openai.api_client import APIClient
 
 # ── 服务配置 ──────────────────────────────────────────────────────────
-MODEL_REPO = 'JetLM/SDAR-30B-A3B-Sci'
+MODEL_REPO = '/mnt/tidal-alsh01/dataset/redone/heshien/red_mg_dllm/Red-dLLM_30BA3B_pt_s27000_sft_s5100_sft_v2_compress_text_20260306002212/hf_800'
 BACKEND = 'pytorch'
-TP = 2
+TP = 1
 SERVER_PORT = 20000
 BASE_URL = f'http://127.0.0.1:{SERVER_PORT}'
 SERVER_TIMEOUT = 1200  # 等待服务启动最长时间（秒）
@@ -41,11 +41,11 @@ DLLM_EXTRA_PARAMS = {
     'dllm-confidence-threshold': 0.9,
 }
 
-# SDAR 推理采样参数（temperature=1.0, top_p=1.0, top_k=0）
+# SDAR 推理采样参数（temperature=1.0, top_p=1.0, top_k=-1 表示禁用 top_k 过滤）
 SDAR_SAMPLING = {
     'temperature': 1.0,
     'top_p': 1.0,
-    'extra_body': {'top_k': 0},
+    'extra_body': {'top_k': -1},
 }
 
 # 基础功能测试用例
@@ -286,8 +286,8 @@ class TestSDARMultiTurn:
 class TestSDARSamplingParams:
     """SDAR 特有采样参数验证。"""
 
-    def test_top_k_zero(self, openai_client):
-        """top_k=0 时服务不报错（SDAR 默认配置）。"""
+    def test_top_k_disabled(self, openai_client):
+        """top_k=-1（禁用）时服务不报错（SDAR 默认配置）。"""
         client, model_id = openai_client
         resp = client.chat.completions.create(
             model=model_id,
@@ -295,9 +295,9 @@ class TestSDARSamplingParams:
             max_tokens=128,
             temperature=1.0,
             top_p=1.0,
-            extra_body={'top_k': 0},
+            extra_body={'top_k': -1},
         )
-        assert resp.choices[0].message.content, '使用 top_k=0 时回复为空'
+        assert resp.choices[0].message.content, '使用 top_k=-1 时回复为空'
 
     def test_max_tokens_limit(self, openai_client):
         """验证 max_tokens 参数被正确遵守。"""
@@ -308,7 +308,7 @@ class TestSDARSamplingParams:
             max_tokens=32,
             temperature=1.0,
             top_p=1.0,
-            extra_body={'top_k': 0},
+            extra_body={'top_k': -1},
         )
         usage = resp.usage
         assert usage.completion_tokens <= 32, (
@@ -370,7 +370,7 @@ if __name__ == '__main__':
                 max_tokens=256,
                 temperature=1.0,
                 top_p=1.0,
-                extra_body={'top_k': 0},
+                extra_body={'top_k': -1},
             )
             content = resp.choices[0].message.content
             print(f'  Q: {case["prompt"]}')
