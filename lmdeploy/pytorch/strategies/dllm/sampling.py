@@ -43,11 +43,24 @@ class DLLMSamplingStrategy(ARSamplingStrategy):
             'random_offsets',
             'all_ids',
             'num_ignore_eos',
-            'ngram_size',
-            'ngram_threshold',
+            # New names in SamplingInputs.
+            'repetition_ngram_size',
+            'repetition_ngram_threshold',
         ]
+        # Backward compatibility for mixed versions where old field names may still exist.
+        legacy_attr_aliases = {
+            'repetition_ngram_size': 'ngram_size',
+            'repetition_ngram_threshold': 'ngram_threshold',
+        }
         for name in update_attr_names:
-            attr = getattr(out, name)
+            if hasattr(out, name):
+                attr_name = name
+            elif name in legacy_attr_aliases and hasattr(out, legacy_attr_aliases[name]):
+                attr_name = legacy_attr_aliases[name]
+            else:
+                continue
+
+            attr = getattr(out, attr_name)
             if attr is None:
                 continue
             if attr.dim() == 1:
@@ -59,7 +72,7 @@ class DLLMSamplingStrategy(ARSamplingStrategy):
             else:
                 repeats = (dllm_block_length, ) + (1, ) * (attr.dim())
                 attr = attr[None].repeat(*repeats).flatten(0, 1)
-            setattr(out, name, attr)
+            setattr(out, attr_name, attr)
 
         # update generated_ids_cpu
         if out.generated_ids_cpu is not None:
